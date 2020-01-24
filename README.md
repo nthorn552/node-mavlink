@@ -10,7 +10,7 @@ At this point, not supported are:
 ## Installation
 The module is published on npm. Install using:
 
-    npm install @ifrunistuttgart/node-mavlink --save
+    npm install @surely552/node-mavlink --save
 
 ## Usage
 To be able to use this module, the MAVLink message definitions need to be parsed using the official [pymavlink](https://github.com/ArduPilot/pymavlink), which creates the TypeScript classes.
@@ -32,7 +32,7 @@ Then run within the *assets* directory
 ### TypeScript
 
 ```ts
-import {MAVLinkModule, MAVLinkMessage} from '@ifrunistuttgart/node-mavlink';  
+import {MAVLinkModule, MAVLinkMessage} from '@surely552/node-mavlink';  
 import {messageRegistry} from './assets/message-registry';  
   
 import Serialport from 'serialport';  
@@ -71,7 +71,7 @@ mavLink.on('HIGHRES_IMU', function (message: MAVLinkMessage) {
 ```js
 var SerialPort = require('serialport');  
 var messageRegistry = require('.assets/messageRegistry');  
-var mavLink = require('@ifrunistuttgart/node-mavlink')(messageRegistry);  
+var mavLink = require('@surely552/node-mavlink')(messageRegistry);  
   
 var serialPort = new SerialPort('COM4', {  
     baudRate: 57600  
