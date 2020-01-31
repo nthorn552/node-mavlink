@@ -75,11 +75,18 @@ export class MAVLinkParserV2 extends MAVLinkParserBase {
                 const field_type: string = field[1];
                 const extension_field: boolean = field[2];
                 const field_length = message.sizeof(field_type);
-                if (payload.length > start + field_length) {
+                if (payload.length >= start + field_length) {
                     message[field_name] = this.read(payload, start, field_type);
                     start += field_length;
-                } else {
-                    break;
+                } else if (start < payload.length) { // partially truncated field
+                    const truncated: Buffer = payload.slice(start);
+                    const filler: Buffer = Buffer.alloc(field_length - truncated.length);
+                    const buf = Buffer.concat([truncated, filler]);
+                    message[field_name] = this.read(buf, 0, field_type);
+                    start += field_length;
+                } else { // fully truncated field
+                    message[field_name] = 0;
+                    start += field_length;
                 }
             }
 
