@@ -61,3 +61,14 @@ test('MessageExtensionPackUnpack', async () => {
     expect(messages[0]._message_id).toBe(msg._message_id);
     expect(messages[0].mission_type).toBe(MavMissionType.MAV_MISSION_TYPE_FENCE);
 });
+
+test('MessageTruncation', async () => { // should truncate target_component and missiont_type
+    const msg = new MissionCount(1, 0);
+    msg.count = 16;
+    msg.target_system = 1;
+    msg.target_component = 0;
+    msg.mission_type = MavMissionType.MAV_MISSION_TYPE_MISSION;
+    const packedMsg = mavlinkModule.pack([msg]);
+    // @ts-ignore
+    expect(packedMsg.length).toBe(15) // min packet length = 12, count = 2, target_system = 1: 15
+});
