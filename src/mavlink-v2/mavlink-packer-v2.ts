@@ -59,8 +59,7 @@ export class MAVLinkPackerV2 extends MAVLinkPackerBase {
             bytes_to_truncate++, start--;
         }
         if (bytes_to_truncate) {
-            const truncation_point = last_payload_byte_position - bytes_to_truncate;
-            buffer = Buffer.concat([buffer.slice(0, truncation_point), buffer.slice(last_payload_byte_position)]);
+            buffer = Buffer.concat([buffer.slice(0, last_payload_byte_position - bytes_to_truncate), buffer.slice(last_payload_byte_position)]);
         }
         buffer.writeUInt8(message._payload_length + message._extension_length - bytes_to_truncate, 1); // set payload len
 
