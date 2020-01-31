@@ -81,7 +81,7 @@ export class MAVLinkParserV2 extends MAVLinkParserBase {
                 } else if (start < payload.length) { // partially truncated field
                     const truncated: Buffer = payload.slice(start);
                     const filler: Buffer = Buffer.alloc(field_length - truncated.length);
-                    const buf = Buffer.concat([truncated, filler]);
+                    const buf = Buffer.concat([truncated, filler]); // append the truncated zero bytes so that we can parse the last field
                     message[field_name] = this.read(buf, 0, field_type);
                     start += field_length;
                 } else { // fully truncated field
