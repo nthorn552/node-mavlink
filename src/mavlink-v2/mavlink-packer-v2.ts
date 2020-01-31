@@ -33,9 +33,9 @@ export class MAVLinkPackerV2 extends MAVLinkPackerBase {
     }
 
     packMessage(message: MAVLinkMessage): Buffer {
-        const buffer = Buffer.alloc(this.minimum_packet_length + message._payload_length);
+        const buffer = Buffer.alloc(this.minimum_packet_length + message._payload_length + message._extension_length);
         buffer.writeUInt8(this.start_marker, 0);
-        buffer.writeUInt8(message._payload_length, 1);
+        buffer.writeUInt8(message._payload_length + message._extension_length, 1);
         buffer.writeUInt8(0, 2);
         buffer.writeUInt8(0, 3);
         buffer.writeUInt8(0, 4);
@@ -49,15 +49,13 @@ export class MAVLinkPackerV2 extends MAVLinkPackerBase {
             const field_type: string = field[1];
             const extension_field: boolean = field[2];
             const field_length = message.sizeof(field_type);
-            if (!extension_field) {
-                this.write(buffer, message[field_name], start + this.minimum_packet_length - 2, field_type);
-                start += field_length;
-            }
+            this.write(buffer, message[field_name], start + this.minimum_packet_length - 2, field_type);
+            start += field_length;
         }
 
-        let actual = message.x25CRC(buffer.slice(1, this.minimum_packet_length + message._payload_length - 2));
+        let actual = message.x25CRC(buffer.slice(1, this.minimum_packet_length + message._payload_length - 2 + message._extension_length));
 
-        buffer.writeUInt16LE(actual, this.minimum_packet_length + message._payload_length - 2);
+        buffer.writeUInt16LE(actual, this.minimum_packet_length + message._payload_length - 2 + message._extension_length);
         return buffer;
     }
 
