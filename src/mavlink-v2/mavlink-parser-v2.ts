@@ -38,6 +38,27 @@ export class MAVLinkParserV2 extends MAVLinkParserBase {
         return bytes.readUInt8(1) + this.minimum_packet_length;
     }
 
+    protected create_payload_reader(message: MAVLinkMessage, payload: Buffer) {
+        let start = 0;
+        const next = (field: string): string | number | undefined => {
+            let value: string | number | undefined = 0;
+            const field_length = message.sizeof(field);
+            if (payload.length >= start + field_length) {
+                value = this.read(payload, start, field);
+            } else if (start < payload.length) { // partially truncated field
+                const truncated: Buffer = payload.slice(start);
+                const filler: Buffer = Buffer.alloc(field_length - truncated.length);
+                const buf = Buffer.concat([truncated, filler]);
+                value = this.read(buf, 0, field);
+            } else { // fully truncated field
+                value = 0;
+            }
+            start += field_length;
+            return value;
+        }
+        return { next }
+    }
+
     protected parseMessage(bytes: Buffer): MAVLinkMessage | undefined {
         const len = bytes.readUInt8(1);
         const incompat_flags = bytes.readUInt8(2);
@@ -69,27 +90,22 @@ export class MAVLinkParserV2 extends MAVLinkParserBase {
 
             const payload = bytes.slice(this.minimum_packet_length - 2, len + this.minimum_packet_length - 2);
 
-            let start = 0;
+            let payload_reader = this.create_payload_reader(message, payload);
             for (const field of message._message_fields) {
                 const field_name: string = field[0];
                 const field_type: string = field[1];
                 const extension_field: boolean = field[2];
-                const field_length = message.sizeof(field_type);
-                if (payload.length >= start + field_length) {
-                    message[field_name] = this.read(payload, start, field_type);
-                    start += field_length;
-                } else if (start < payload.length) { // partially truncated field
-                    const truncated: Buffer = payload.slice(start);
-                    const filler: Buffer = Buffer.alloc(field_length - truncated.length);
-                    const buf = Buffer.concat([truncated, filler]);
-                    message[field_name] = this.read(buf, 0, field_type);
-                    start += field_length;
-                } else { // fully truncated field
-                    message[field_name] = 0;
-                    start += field_length;
+                const array_size = field[3];
+                if (array_size) {
+                    const field_array = new Array(array_size);
+                    for(let i=0; i < array_size; i++) {
+                        field_array[i] = payload_reader.next(field_type);
+                    }
+                    message[field_name] = field_array;
+                } else {
+                    message[field_name] = payload_reader.next(field_type);
                 }
             }
-
             return message;
         } catch (e) {
             throw e;
