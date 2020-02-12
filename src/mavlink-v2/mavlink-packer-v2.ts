@@ -47,9 +47,17 @@ export class MAVLinkPackerV2 extends MAVLinkPackerBase {
             const field_name: string = field[0];
             const field_type: string = field[1];
             const extension_field: boolean = field[2];
+            const array_size = field[3];
             const field_length = message.sizeof(field_type);
-            this.write(buffer, message[field_name], start + this.minimum_packet_length - 2, field_type);
-            start += field_length;
+            if (array_size) {
+                for(let i = 0; i < array_size ; i++) {
+                    this.write(buffer, message[field_name][i] || 0, start + this.minimum_packet_length - 2, field_type);
+                    start += field_length;
+                }
+            } else {
+                this.write(buffer, message[field_name], start + this.minimum_packet_length - 2, field_type);
+                start += field_length;
+            }
         }
 
         const last_payload_byte_position = this.minimum_packet_length - 2 + message._payload_length + message._extension_length;

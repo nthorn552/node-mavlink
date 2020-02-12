@@ -27,6 +27,7 @@ import {MavCmd} from "../../../assets/enums/mav-cmd";
 import {MAVLinkModule} from "../../mavlink-module";
 import {messageRegistry} from "../../../assets/message-registry";
 import { MavMissionType } from "../../../assets/enums/mav-mission-type";
+import { LogData } from "../../../assets/messages/log-data";
 
 let mavlinkModule: MAVLinkModule;
 
@@ -71,4 +72,18 @@ test('MessageTruncation', async () => { // should truncate target_component and 
     const packedMsg = mavlinkModule.pack([msg]);
     // @ts-ignore
     expect(packedMsg.length).toBe(15) // min packet length = 12, count = 2, target_system = 1: 15
+});
+
+test('PackArray', async () => {
+    const msg = new LogData(1, 0);
+    msg.target_system = 1;
+    msg.target_component = 0;
+    msg.ofs = 0;
+    msg.count = 90;
+    const dataArray = new Array(90);
+    dataArray[89] = 0xff
+    msg.data = dataArray;
+    const packedMsg = mavlinkModule.pack([msg]);
+    // @ts-ignore
+    expect(packedMsg.length).toBe(109); // min packet length = 12, others = 7, data = 90: 109
 });

@@ -26,6 +26,7 @@ import {ParserState} from "../../parser-state.enum";
 import {messageRegistry} from "../../../assets/message-registry";
 import {MAVLinkMessage} from "../../mavlink-message";
 import {MessageInterval} from "../../../assets/messages/message-interval";
+import { LogData } from "../../../assets/messages/log-data";
 
 let mavlinkModule: MAVLinkModule;
 
@@ -88,4 +89,21 @@ test('MessageTruncated', () => {
         // @ts-ignore
         expect(message[0].message_id).toBe(message_id);
     });
+});
+
+test('UnpackArray', async () => {
+    const msg = new LogData(1, 0);
+    msg.target_system = 1;
+    msg.target_component = 0;
+    msg.ofs = 0;
+    msg.count = 90;
+    const dataArray = new Array(90);
+    dataArray[89] = 0xff
+    msg.data = dataArray;
+    const packedMsg = mavlinkModule.pack([msg]);
+    const messages = await mavlinkModule.parse(packedMsg);
+    // @ts-ignore
+    expect(messages[0].data.length).toBe(90);
+    // @ts-ignore
+    expect(messages[0].data[89]).toBe(0xff);
 });
