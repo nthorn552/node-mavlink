@@ -108,7 +108,7 @@ export class MAVLinkParserV1 extends MAVLinkParserBase {
             case "double":
                 return bytes.readDoubleLE(start);
             case "char":
-                return bytes.toString('ascii', start, 1);
+                return bytes.toString('ascii', start, start + 1);
         }
     }
 }
