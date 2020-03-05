@@ -23,6 +23,7 @@
 
 import {MAVLinkParserBase} from "../mavlink-parser-base";
 import {MAVLinkMessage, readInt64LE, readUInt64LE} from "../mavlink-message";
+import { CrcError } from "../errors";
 
 export class MAVLinkParserV2 extends MAVLinkParserBase {
     private last_seq: number = 0;
@@ -77,7 +78,7 @@ export class MAVLinkParserV2 extends MAVLinkParserBase {
 
             let actual = message.x25CRC(bytes.slice(1, len + this.minimum_packet_length - 2));
             if (actual !== crc) {
-                throw new Error(`CRC error: expected ${crc} but found ${actual}.`);
+                throw new CrcError(`CRC error: expected ${crc} but found ${actual}.`);
             }
 
             if (this.last_seq > 0 && this.last_seq + 1 !== seq) {
@@ -101,6 +102,7 @@ export class MAVLinkParserV2 extends MAVLinkParserBase {
                     for(let i=0; i < array_size; i++) {
                         field_array[i] = payload_reader.next(field_type);
                     }
+                    // TODO: handle truncation to trim trailing 0's
                     message[field_name] = field_array;
                 } else {
                     message[field_name] = payload_reader.next(field_type);

@@ -23,6 +23,7 @@
 
 import {MAVLinkMessage} from "./mavlink-message";
 import {ParserState} from "./parser-state.enum";
+import { UnknownMessageIdError } from "./errors";
 
 export abstract class MAVLinkParserBase {
     protected abstract start_marker: number;
@@ -102,6 +103,6 @@ export abstract class MAVLinkParserBase {
             const constructorFn: (new (system_id: number, component_id: number) => MAVLinkMessage) = message_factory_tuple[1];
             return new constructorFn(system_id, component_id);
         }
-        throw new Error(`Unknown message ID.`);
+        throw new UnknownMessageIdError("Unknown message ID:" + message_id);
     }
 }

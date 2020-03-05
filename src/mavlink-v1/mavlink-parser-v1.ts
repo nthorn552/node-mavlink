@@ -23,6 +23,7 @@
 
 import {MAVLinkParserBase} from "../mavlink-parser-base";
 import {MAVLinkMessage, readInt64LE, readUInt64LE} from "../mavlink-message";
+import { CrcError } from "../errors";
 
 export class MAVLinkParserV1 extends MAVLinkParserBase {
     private last_seq: number = 0;
@@ -54,7 +55,7 @@ export class MAVLinkParserV1 extends MAVLinkParserBase {
 
             let actual = message.x25CRC(bytes.slice(1, len + this.minimum_packet_length - 2));
             if (actual !== crc) {
-                throw new Error(`CRC error: expected ${crc} but found ${actual}.`);
+                throw new CrcError(`CRC error: expected ${crc} but found ${actual}.`);
             }
 
             if (this.last_seq > 0 && this.last_seq + 1 !== seq) {
